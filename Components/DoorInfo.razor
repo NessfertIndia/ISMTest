@@ -1,0 +1,31 @@
+﻿<div class="@GetDoorStyleClass()">
+    <div class="row">
+        <div class="col-4">
+            @($"{@DoorItem.Name} / {@DoorItem.Description}")
+        </div>
+        <div class="col-2">
+            @DoorItem.StateOpen.ToString()
+        </div>
+        <div class="col-2">
+            @DoorItem.StateLocked.ToString()
+        </div>
+        <div class="col-2">
+            @DoorItem.StateActive.ToString()
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Door DoorItem { get; set; }
+
+
+    /// <summary>
+    /// Helper method to set the class of the door instance. Showing a warning background if the StateActive is Alarmed!
+    /// </summary>
+    /// <returns></returns>
+    string GetDoorStyleClass()
+    {
+        return DoorItem.StateActive == DoorStateActive.Alarmed ? "card text-dark bg-danger mb-1 p-2" : "border-success card text-info mb-1 p-2";
+    }
+}

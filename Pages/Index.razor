@@ -1,0 +1,57 @@
+﻿@page "/"
+@using System.Text.Json
+@inject IJSRuntime JSRuntime
+ 
+<div class="row">
+    <ChanegDoorState DoorsList="MasterDoors" OnDoorStateChanged="DoorStateChangedHandler"></ChanegDoorState>
+</div> 
+@foreach (var entry in MasterDoors)
+{ 
+    <DoorInfo DoorItem="entry" ></DoorInfo>  
+}
+@code {
+    List<Door> MasterDoors = new List<Door>
+    {
+        new Door {Identifier =Guid.NewGuid(),Name="Door 1",Description="Entrance Hall",StateOpen = DoorStateOpen.Open, StateLocked = DoorStateLocked.Locked, StateActive=  DoorStateActive.Active},
+        new Door {Identifier =Guid.NewGuid(),Name="Door 2",Description="Lobby",StateOpen = DoorStateOpen.Open, StateLocked = DoorStateLocked.Locked, StateActive=  DoorStateActive.Alarmed},
+        new Door {Identifier =Guid.NewGuid(),Name="Door 3",Description="Control Room",StateOpen = DoorStateOpen.Open, StateLocked = DoorStateLocked.Locked, StateActive=  DoorStateActive.Active},
+        new Door {Identifier =Guid.NewGuid(),Name="Door 4",Description="Staff Room",StateOpen = DoorStateOpen.Open, StateLocked = DoorStateLocked.Locked, StateActive=  DoorStateActive.Alarmed},
+        new Door {Identifier =Guid.NewGuid(),Name="Door 5",Description="VIP Area",StateOpen = DoorStateOpen.Open, StateLocked = DoorStateLocked.Locked, StateActive=  DoorStateActive.Active}
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Load state from local storage
+            var savedItemsJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "items");
+            if (!string.IsNullOrEmpty(savedItemsJson))
+            {
+                MasterDoors = JsonSerializer.Deserialize<List<Door>>(savedItemsJson);
+                StateHasChanged(); // Ensure the UI is updated after state change
+            }
+        }
+    }
+
+    /// <summary>
+    /// Door state Changed Event Handler. 
+    /// When the door state changes from child component , the details will get comes here 
+    /// </summary>
+    /// <param name="doorObj"></param>
+    /// <returns></returns>
+    protected async Task DoorStateChangedHandler(Door doorObj)
+    {
+        Door Selecteddoor = MasterDoors.Where(x => x.Identifier == doorObj.Identifier).FirstOrDefault();
+        Selecteddoor.StateLocked = doorObj.StateLocked;
+        Selecteddoor.StateOpen = doorObj.StateOpen;
+        Selecteddoor.StateActive = doorObj.StateActive;
+
+        // Save state to local storage
+        var itemsJson = JsonSerializer.Serialize(MasterDoors);
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "items", itemsJson);
+
+        StateHasChanged();
+    }
+
+
+}
